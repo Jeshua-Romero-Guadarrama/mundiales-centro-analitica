@@ -1,0 +1,15 @@
+{
+  "name": "Mundial 2026 · Centro de Analítica",
+  "short_name": "Mundial 2026",
+  "description": "Predicciones, simulaciones y calibración de modelos del Mundial 2026.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0e14",
+  "theme_color": "#00b86b",
+  "icons": [
+    { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

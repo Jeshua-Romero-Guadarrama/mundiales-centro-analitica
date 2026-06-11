@@ -1,0 +1,17 @@
+[project]
+name = "mundial-2026-analitica"
+version = "1.0.0"
+description = "Centro de analitica del Mundial 2026: ingesta de datos, modelos predictivos y calibracion."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Jeshua Romero Guadarrama" },
+]
+maintainers = [
+    { name = "Jeshua Romero Guadarrama" },
+]
+keywords = ["mundial", "futbol", "analitica", "prediccion", "poisson", "elo", "monte-carlo"]
+
+[tool.proyecto]
+autor = "Jeshua Romero Guadarrama"

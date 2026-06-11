@@ -1,0 +1,18 @@
+services:
+  dashboard:
+    build: .
+    image: dashboard-mundial:latest
+    container_name: dashboard-mundial
+    ports:
+      - "8000:8000"
+    environment:
+      - DATA_DIR=/data
+      - FOOTBALL_DATA_API_KEY=${FOOTBALL_DATA_API_KEY:-}
+      - DAILY_UPDATE_HOUR=${DAILY_UPDATE_HOUR:-6}
+      - DAILY_UPDATE_MINUTE=${DAILY_UPDATE_MINUTE:-0}
+    volumes:
+      - dashboard-data:/data
+    restart: unless-stopped
+
+volumes:
+  dashboard-data:

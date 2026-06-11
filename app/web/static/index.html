@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--
+  Mundial 2026 · Centro de Analítica
+  Autor: Jeshua Romero Guadarrama
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="author" content="Jeshua Romero Guadarrama" />
+  <meta name="description" content="Predicciones, simulaciones y calibración de modelos del Mundial 2026." />
+  <meta name="theme-color" content="#00b86b" />
+  <title>Mundiales · Centro de Analítica</title>
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Mundial 2026" />
+  <link rel="preconnect" href="https://flagcdn.com" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="emblem">🏆</span>
+      <div>
+        <h1>Mundiales · Centro de Analítica</h1>
+        <p class="sub">Modelos predictivos por Jeshua</p>
+      </div>
+    </div>
+    <div class="livebox">
+      <span class="livedot" id="liveDot"></span>
+      <div>
+        <div id="liveLabel" class="live-label">EN VIVO</div>
+        <div id="clock" class="clock">--:--:--</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="ticker"><div id="tickerInner" class="ticker-inner">Cargando datos del torneo…</div></div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="live">⚡ En vivo</button>
+    <button class="tab" data-tab="pred">🎯 Predicciones</button>
+    <button class="tab" data-tab="standings">📋 Clasificación</button>
+    <button class="tab" data-tab="sim">🎲 Simulación</button>
+    <button class="tab" data-tab="calib">🧪 Calibración</button>
+    <button class="tab" data-tab="teams">📊 Ratings</button>
+  </nav>
+
+  <main>
+    <!-- EN VIVO -->
+    <section id="live" class="panel active">
+      <div class="kpis" id="kpis"></div>
+      <div id="progressWrap" class="progress-wrap"></div>
+      <div class="live-grid">
+        <div class="live-card">
+          <h3>⏱️ Próximo partido</h3>
+          <div id="nextMatch" class="next-match">—</div>
+          <div id="countdown" class="countdown">--:--:--</div>
+        </div>
+        <div class="live-card">
+          <h3>⭐ Partido destacado</h3>
+          <div id="featuredMatch" class="next-match muted">—</div>
+        </div>
+      </div>
+      <div class="live-grid">
+        <div class="live-card">
+          <h3>🔥 Favoritos al título</h3>
+          <div id="favorites"><span class="muted">Calculando…</span></div>
+        </div>
+        <div class="live-card">
+          <h3>🔴 En juego ahora</h3>
+          <div id="inPlay" class="inplay-list"><span class="muted">No hay partidos en juego en este momento.</span></div>
+        </div>
+      </div>
+      <div class="live-grid">
+        <div class="live-card">
+          <h3>📊 Últimos resultados</h3>
+          <div id="recentResults" class="inplay-list"><span class="muted">Aún no hay partidos jugados.</span></div>
+        </div>
+        <div class="live-card">
+          <h3>📅 Próximos encuentros</h3>
+          <div id="upcomingList" class="inplay-list"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PREDICCIONES -->
+    <section id="pred" class="panel">
+      <div class="controls">
+        <label>Modelo:
+          <select id="modelSelect"></select>
+        </label>
+        <span id="modelDesc" class="hint"></span>
+        <button id="refreshBtn" class="ghost">⟳ Actualizar datos</button>
+      </div>
+      <div id="predList" class="cards"></div>
+    </section>
+
+    <!-- CLASIFICACION -->
+    <section id="standings" class="panel">
+      <div id="standingsBox" class="groups"></div>
+    </section>
+
+    <!-- SIMULACION -->
+    <section id="sim" class="panel">
+      <div class="controls">
+        <label>Simulaciones:
+          <select id="simN">
+            <option value="1000">1.000</option>
+            <option value="2000" selected>2.000</option>
+            <option value="5000">5.000</option>
+          </select>
+        </label>
+        <label>Modelo base:
+          <select id="simBase">
+            <option value="poisson" selected>Poisson</option>
+            <option value="elo">Elo</option>
+          </select>
+        </label>
+        <button id="simBtn">▶ Simular Mundial</button>
+        <span id="simStatus" class="hint"></span>
+      </div>
+      <div id="simBox"></div>
+    </section>
+
+    <!-- CALIBRACION -->
+    <section id="calib" class="panel">
+      <div class="controls">
+        <span class="hint">Validación <b>walk-forward</b> (sin mirar el futuro) sobre <span id="calibDataset">…</span>.</span>
+        <button id="calibBtn" class="ghost">⟳ Recalcular</button>
+      </div>
+      <h3 class="section-title">Resumen por modelo</h3>
+      <div id="calibCards" class="metric-grid"></div>
+      <h3 class="section-title">Gráficos de diagnóstico</h3>
+      <div id="calibCharts" class="chart-grid"></div>
+      <div class="tips">
+        <h3>Cómo mejorar los modelos</h3>
+        <ul id="tipsList"></ul>
+      </div>
+    </section>
+
+    <!-- RATINGS -->
+    <section id="teams" class="panel">
+      <div id="teamsBox"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

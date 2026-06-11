@@ -1,0 +1,23 @@
+# Despliegue publico gratuito en Render (https://render.com) directamente desde
+# GitHub usando el Dockerfile del proyecto. Crea una URL publica accesible desde
+# movil y PC. Autor: Jeshua Romero Guadarrama.
+services:
+  - type: web
+    name: mundial-2026-analitica
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/status
+    autoDeploy: true
+    envVars:
+      # Modo público recomendado para internet.
+      - key: PUBLIC_MODE
+        value: "1"
+      # Clave opcional de football-data.org (se introduce en el panel de Render,
+      # nunca en el codigo). Si se deja vacia, se usa scraping + semilla.
+      - key: FOOTBALL_DATA_API_KEY
+        sync: false
+      - key: DAILY_UPDATE_HOUR
+        value: "6"
+      - key: DAILY_UPDATE_MINUTE
+        value: "0"
