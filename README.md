@@ -8,6 +8,13 @@ métricas de ciencia de datos. Incluye un panel **en vivo** y se actualiza a dia
 Construida con **Python + FastAPI** sobre una **arquitectura por capas** y
 desplegable con **Docker**.
 
+## 🌐 Despliegue público (1 clic)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Jeshua-Romero-Guadarrama/mundiales-centro-analitica)
+
+Render lee el `render.yaml` del repositorio, construye la imagen Docker y publica
+una URL pública accesible desde cualquier dispositivo.
+
 ---
 
 ## 🚀 Ejecutar con Docker

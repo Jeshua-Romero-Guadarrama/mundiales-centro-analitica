@@ -3,7 +3,7 @@
 # movil y PC. Autor: Jeshua Romero Guadarrama.
 services:
   - type: web
-    name: mundial-2026-analitica
+    name: mundiales-centro-analitica
     runtime: docker
     plan: free
     region: frankfurt
