@@ -6,7 +6,7 @@
 // a la red (datos frescos); si la red falla, no se sirve cache de la API para
 // no mostrar datos antiguos como si fueran en vivo.
 
-const CACHE = "mundial2026-v6";
+const CACHE = "mundial2026-v7";
 const SHELL = [
   "/",
   "/static/style.css",

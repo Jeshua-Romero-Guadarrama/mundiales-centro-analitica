@@ -40,11 +40,14 @@ CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 def init_db() -> None:
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        # WAL permite lecturas concurrentes mientras se escribe: evita que las
+        # peticiones (p. ej. el health check) se bloqueen durante la ingesta.
+        conn.execute("PRAGMA journal_mode=WAL")
 
 
 @contextmanager
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     try:
         yield conn

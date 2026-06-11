@@ -104,8 +104,16 @@ def _metrics(records: list[tuple[list[float], int]]) -> dict:
     }
 
 
+_CACHE: dict = {"key": None, "result": None}
+
+
 def backtest(include_live: bool = True) -> dict:
     data, label = _dataset(include_live)
+    # El backtest es determinista dado el conjunto de partidos: se cachea para
+    # no recalcular la validacion completa en cada visita (coste alto de CPU).
+    cache_key = (len(data), include_live)
+    if _CACHE["key"] == cache_key and _CACHE["result"] is not None:
+        return _CACHE["result"]
     priors = _priors()
     field_avg = sum(priors.values()) / len(priors)
     elos = dict(priors)
@@ -166,7 +174,7 @@ def backtest(include_live: bool = True) -> dict:
         m["key"] = key
         out_models[key] = m
 
-    return {
+    result = {
         "dataset": label,
         "n_matches": n,
         "baseline": {
@@ -176,6 +184,8 @@ def backtest(include_live: bool = True) -> dict:
         "models": out_models,
         "tips": _improvement_tips(out_models, n),
     }
+    _CACHE["key"], _CACHE["result"] = cache_key, result
+    return result
 
 
 def _improvement_tips(models: dict, n: int) -> list[str]:

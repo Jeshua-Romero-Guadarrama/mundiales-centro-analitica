@@ -240,7 +240,7 @@ async function loadLive() {
 // Favoritos al título (simulación ligera, una vez al cargar)
 async function loadFavorites() {
   try {
-    const d = await api("/api/simulate?n=1000");
+    const d = await api("/api/simulate?n=600");
     const top = d.teams.slice(0, 5);
     $("#favorites").innerHTML = hbars(top.map((t) => ({
       label: esName(t.name), flag: flag(t.code, true), value: t.champion, color: COL.gold,
@@ -265,7 +265,7 @@ function updateModelDesc() {
 
 // ---------------- predicciones ----------------
 async function loadPredictions() {
-  const model = $("#modelSelect").value, box = $("#predList");
+  const model = $("#modelSelect").value || "poisson", box = $("#predList");
   box.innerHTML = '<div class="spinner">Calculando predicciones…</div>';
   let preds = await api(`/api/predictions?model=${model}&status=SCHEDULED`);
   if (!preds.length) preds = await api(`/api/predictions?model=${model}&status=IN_PLAY`);
