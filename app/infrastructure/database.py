@@ -158,6 +158,11 @@ def get_match(match_id: int) -> dict | None:
         return dict(row) if row else None
 
 
+def delete_matches_by_source(source: str) -> None:
+    with get_conn() as conn:
+        conn.execute("DELETE FROM matches WHERE source=?", (source,))
+
+
 def count(table: str) -> int:
     with get_conn() as conn:
         return conn.execute(f"SELECT COUNT(*) c FROM {table}").fetchone()["c"]

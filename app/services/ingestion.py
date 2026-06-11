@@ -68,19 +68,19 @@ def run_update() -> dict:
         summary["errors"].append(f"api: {exc}")
 
     try:
-        known = {t["name"] for t in db.get_teams()}
-        applied = 0
-        for m in wikipedia.fetch_results():
-            home, away = _canon(m["home"]), _canon(m["away"])
-            if home in known and away in known:
-                m["home"], m["away"] = home, away
+        teams = db.get_teams()
+        known = {_norm(t["name"]): t["name"] for t in teams}
+        team_grp = {t["name"]: t["grp"] for t in teams}
+        real = wikipedia.fetch_matches(known)
+        if real:
+            db.delete_matches_by_source("fixtures-2026")  # quita el calendario provisional
+            for m in real:
+                m["grp"] = team_grp.get(m["home"])
                 db.upsert_match(m)
-                applied += 1
-        summary["wiki_results"] = applied
-        if applied and summary["source"] == "seed":
+            summary["real_matches"] = len(real)
             summary["source"] = "wikipedia"
     except Exception as exc:
-        summary["errors"].append(f"wiki: {exc}")
+        summary["errors"].append(f"matches: {exc}")
 
     # Clasificaciones reales de los grupos (refleja los partidos ya jugados).
     try:

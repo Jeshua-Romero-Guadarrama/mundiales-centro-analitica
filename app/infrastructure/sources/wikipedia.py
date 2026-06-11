@@ -6,11 +6,44 @@
 from __future__ import annotations
 
 import re
+import unicodedata
+from datetime import datetime, timedelta, timezone
 
 from ...core.config import WIKI_URLS
 from .. import http
 
-SCORE_RE = re.compile(r"^\s*(\d+)\s*[-–:]\s*(\d+)\s*$")
+MATCH_SCORE_RE = re.compile(r"(\d+)\s*[–-]\s*(\d+)")
+
+
+def _norm(s: str) -> str:
+    s = unicodedata.normalize("NFKD", str(s))
+    return "".join(c for c in s if not unicodedata.combining(c)).lower().strip()
+
+
+def _parse_kickoff(text: str) -> str | None:
+    """Extrae la fecha/hora del partido en UTC a partir del texto del recuadro."""
+    iso = re.search(r"(\d{4})-(\d{2})-(\d{2})", text)
+    if not iso:
+        return None
+    y, mo, d = int(iso.group(1)), int(iso.group(2)), int(iso.group(3))
+    hh, mm = 12, 0
+    tm = re.search(r"(\d{1,2}):(\d{2})\s*(a\.m\.|p\.m\.|am|pm)?", text, re.I)
+    if tm:
+        hh, mm = int(tm.group(1)), int(tm.group(2))
+        ap = (tm.group(3) or "").lower().replace(".", "")
+        if ap == "pm" and hh != 12:
+            hh += 12
+        elif ap == "am" and hh == 12:
+            hh = 0
+    off = 0
+    om = re.search(r"UTC\s*([+\-−])\s*(\d{1,2})", text)
+    if om:
+        off = (-1 if om.group(1) in "-−" else 1) * int(om.group(2))
+    try:
+        local = datetime(y, mo, d, hh, mm, tzinfo=timezone.utc)
+        return (local - timedelta(hours=off)).isoformat()
+    except ValueError:
+        return None
 
 
 def _download(url: str) -> str | None:
@@ -22,10 +55,6 @@ def _download(url: str) -> str | None:
     except Exception as exc:
         print(f"[wiki] descarga fallida {url}: {exc}")
         return None
-
-
-def _clean(name: str) -> str:
-    return re.sub(r"\[.*?\]", "", name).strip()
 
 
 def _clean_team(name: str) -> str:
@@ -97,43 +126,52 @@ def fetch_group_standings() -> dict[str, list[dict]]:
     return {}
 
 
-def fetch_results() -> list[dict]:
-    """Partidos FINALIZADOS detectados en las tablas de Wikipedia."""
-    import pandas as pd
-    from io import StringIO
+def fetch_matches(known: dict[str, str]) -> list[dict]:
+    """Calendario real del torneo: enfrentamientos, fecha y marcador.
+
+    `known` es {nombre_normalizado: nombre_canonico} de las selecciones de la
+    base de datos. Solo se devuelven los partidos entre selecciones conocidas
+    (fase de grupos), con su resultado si ya se jugaron.
+    """
+    from bs4 import BeautifulSoup
 
     for url in WIKI_URLS:
         html = _download(url)
         if not html:
             continue
-        try:
-            tables = pd.read_html(StringIO(html))
-        except Exception as exc:
-            print(f"[wiki] read_html fallo: {exc}")
+        soup = BeautifulSoup(html, "lxml")
+        boxes = soup.select(".footballbox")
+        if not boxes:
             continue
 
-        results: list[dict] = []
-        for tbl in tables:
-            cols = [str(c) for c in tbl.columns]
-            if not any(re.search(r"score|resultado", c, re.I) for c in cols):
+        out: list[dict] = []
+        for b in boxes:
+            home_el = b.select_one(".fhome")
+            score_el = b.select_one(".fscore")
+            away_el = b.select_one(".faway")
+            if not (home_el and score_el and away_el):
                 continue
-            for _, row in tbl.iterrows():
-                cells = [str(v).strip() for v in row.tolist()]
-                for i, cell in enumerate(cells):
-                    m = SCORE_RE.match(cell)
-                    if m and i >= 1 and i + 1 < len(cells):
-                        home, away = cells[i - 1], cells[i + 1]
-                        if not home or not away or "nan" in (home, away):
-                            continue
-                        results.append({
-                            "ext_id": f"wiki-{home}-{away}".replace(" ", "_"),
-                            "utc_date": None, "stage": None, "grp": None,
-                            "home": _clean(home), "away": _clean(away),
-                            "home_goals": int(m.group(1)),
-                            "away_goals": int(m.group(2)),
-                            "status": "FINISHED", "source": "wikipedia",
-                        })
-        if results:
-            print(f"[wiki] {len(results)} resultados extraidos")
-            return results
+            home = known.get(_norm(_clean_team(home_el.get_text(" ", strip=True))))
+            away = known.get(_norm(_clean_team(away_el.get_text(" ", strip=True))))
+            if not home or not away:
+                continue  # descarta cruces de eliminatorias aun sin equipo definido
+
+            m = MATCH_SCORE_RE.search(score_el.get_text(" ", strip=True))
+            if m:
+                hg, ag, status = int(m.group(1)), int(m.group(2)), "FINISHED"
+            else:
+                hg, ag, status = None, None, "SCHEDULED"
+
+            utc = _parse_kickoff(b.get_text(" ", strip=True))
+
+            out.append({
+                "ext_id": f"wcm-{home}-{away}".replace(" ", "_"),
+                "utc_date": utc, "stage": "GROUP_STAGE", "grp": None,
+                "home": home, "away": away,
+                "home_goals": hg, "away_goals": ag,
+                "status": status, "source": "wikipedia-match",
+            })
+        if out:
+            print(f"[wiki] {len(out)} partidos reales extraidos")
+            return out
     return []
